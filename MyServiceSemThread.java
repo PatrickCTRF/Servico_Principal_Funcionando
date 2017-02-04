@@ -59,7 +59,7 @@ public class MyServiceSemThread extends Service {
 
 
     //Obtém sua localizção atual
-    final Localizador locationListener = new Localizador(this);
+    Localizador locationListener = new Localizador(this);
 
     Runnable runnableCode;
 
@@ -159,12 +159,12 @@ public class MyServiceSemThread extends Service {
                     registrouAlertas = true;
                 }
 
-                if(++contador<120){
+                if(++contador<40){
                     handler.postDelayed(this, 1000);//O serviço se repete múltiplas vezes seguidas para garantir que estamos recebendo uma leitura correta dos sensores.
                 } else if(++contadorDeLongoPrazo<2){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
                     desligaSensores();
                     contador = 0;//Reiniciamos o contador de amostragem.
-                    handler.postDelayed(this, 120000);
+                    handler.postDelayed(this, 60000);
                 }else{
                     onDestroy();
                 }
@@ -180,6 +180,8 @@ public class MyServiceSemThread extends Service {
         locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
         info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
         servicoDestruido = true;//Serviço já foi destruído automaticamente, isto informa para que nao tentemos destruí-lo de novo, causando bugs.
+        registrouAlertas = false;//O  alerta agr nao estará mais registrado.
+        locationListener = new Localizador(this);//Se ocorrer erro no unregisterReceiver precisaremos de um novo objeto desta classe.
     }
 
     @Override
