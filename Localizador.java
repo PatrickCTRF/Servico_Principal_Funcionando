@@ -164,13 +164,15 @@ public class Localizador extends ContextWrapper implements LocationListener {
             return;
         }
 
-        try{//Este try/catch evita erros causados por chamadas repetidas de unregisterReceiver
+        try{//Este try/catch evita erros causados por chamadas repetidas de unregisterReceiver e afins.
             Log.v("LISTENER", "listener REMOVENDO");
             if(intentPendente != null) locationManager.removeProximityAlert(intentPendente);//Remove o alerta de proximidade caso tenha sido registrado.
             locationManager.removeUpdates(this);//Desregistra o Listener.
             unregisterReceiver(proximity_receiver);
             Log.v("LISTENER", "listener REMOVIDO");
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }catch (RuntimeException e){
             e.printStackTrace();
         }
 

@@ -53,8 +53,9 @@ public class MyServiceSemThread extends Service {
     double margemDeErroHome = 2;
     String ip = "192.168.0.105", aux = null, aux2 = null;
     int porta = 6789;
-    boolean registrouAlertas = false, servicoDestruido = false;
+    boolean registrouAlertas = false;
     Conectividade conexao = new Conectividade(this);
+    Intent intente = null;
 
 
 
@@ -71,11 +72,9 @@ public class MyServiceSemThread extends Service {
 
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(final Intent intent, int flags, int startId) {
 
         Toast.makeText(this, "Service Started", LENGTH_LONG).show();
-
-        servicoDestruido = false;//Serviço nao foi destruido automaticamente, pois acaba de começar a rodar.
 
         runnableCode = new Runnable() {
 
@@ -122,7 +121,9 @@ public class MyServiceSemThread extends Service {
                                 aux2 = null;
                             }aux +=  "\n";
 
-                            myClient = new Client(ip, porta, aux+ "\n" + "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n");//Envie para o servidor os dados que estavam salvos.
+                            aux += "\n" + "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
+
+                            myClient = new Client(ip, porta, aux);//Envie para o servidor os dados que estavam salvos.
                             myClient.execute();//A quebra de linha após o aux é para alinhar os dados do arquivo com os do servidor da forma que são recebidos.
 
                             escritor = new FileWriter(arquivoDados, false);//apaga o buffer de dados e o fecha.
@@ -133,19 +134,32 @@ public class MyServiceSemThread extends Service {
 
                             Log.v("SERVIDOR", "DADOS ENVIANDO");
 
-                            myClient = new Client(ip, porta, "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n");//Envia somente os dados atuais.
+                            aux = "\n" + "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
+                            myClient = new Client(ip, porta, aux);//Envia somente os dados atuais.
                             myClient.execute();
 
                         }
+
+                        intente = new Intent("com.example.patrick.ALERTA_HOME");
+                        intente.putExtra("HOME", true);
+                        intente.putExtra("DADOS", aux);
+                        sendBroadcast(intente);
 
 
                     }else{//Se nao houver condições de enviar ao servidor, guarde os dados num arquivo.
 
                         Log.v("HOMEinfo", "NÃO ESTÁ NA HOME");
 
+                        aux = "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
+
                         escritor = new FileWriter(arquivoDados, true);
-                        escritor.write("\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n");
+                        escritor.write(aux);
                         escritor.close();
+
+                        intente = new Intent("com.example.patrick.ALERTA_HOME");
+                        intente.putExtra("HOME", false);
+                        intente.putExtra("DADOS", aux);
+                        sendBroadcast(intente);
 
                     }
 
@@ -177,9 +191,8 @@ public class MyServiceSemThread extends Service {
     }
 
     private void desligaSensores(){//Este métoddo permite ao celular desligar os sensores e GPS para poupar energia.
-        locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
-        info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
-        servicoDestruido = true;//Serviço já foi destruído automaticamente, isto informa para que nao tentemos destruí-lo de novo, causando bugs.
+        if(locationListener != null)locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
+        if(info != null) info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
         registrouAlertas = false;//O  alerta agr nao estará mais registrado.
         locationListener = new Localizador(this);//Se ocorrer erro no unregisterReceiver precisaremos de um novo objeto desta classe.
     }
@@ -187,9 +200,8 @@ public class MyServiceSemThread extends Service {
     @Override
     public void onDestroy() {
 
-        locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
-        info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
-        servicoDestruido = true;//Serviço já foi destruído automaticamente, isto informa para que nao tentemos destruí-lo de novo, causando bugs.
+        if(locationListener != null)locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
+        if(info != null) info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
 
         Toast.makeText(this, "Service Destroyed", LENGTH_LONG).show();
         handler.removeCallbacks(runnableCode);//Retira todas as chamadas agendadas deste serviço.
