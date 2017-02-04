@@ -100,10 +100,12 @@ public class AquisicaoSensores extends ContextWrapper{
 
 
     protected void onDestroy() {
-
-        unregisterReceiver(battery_receiver);
-        manager.unregisterListener(acelerometro);
-
+        try{//Este try/catch evita erros causados por chamadas repetidas de unregisterReceiver
+            unregisterReceiver(battery_receiver);
+            manager.unregisterListener(acelerometro);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
 
     }
 

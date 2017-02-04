@@ -56,8 +56,8 @@ public class Client extends AsyncTask<Void, Void, Void> {
             String bytesFromServersStringRead = null;
             BufferedReader inputStream = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            calendario = Calendar.getInstance();
-            socket.getOutputStream().write(("" + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n").getBytes());
+            //calendario = Calendar.getInstance();
+            //socket.getOutputStream().write(("" + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n").getBytes());
             socket.getOutputStream().write((info + "\nFIM\n").getBytes());
 
             bytesFromServersStringRead = inputStream.readLine();

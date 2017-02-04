@@ -54,6 +54,7 @@ public class MyServiceSemThread extends Service {
     String ip = "192.168.0.105", aux = null, aux2 = null;
     int porta = 6789;
     boolean registrouAlertas = false, servicoDestruido = false;
+    Conectividade conexao = new Conectividade(this);
 
 
     //Obtém sua localizção atual
@@ -97,12 +98,13 @@ public class MyServiceSemThread extends Service {
 
                     home_latitude = parseDouble(bufferLeitura.readLine());
                     home_longitude = parseDouble(bufferLeitura.readLine());
+                    //home_latitude = home_longitude = 0;
                     bufferLeitura.close();
 
                     FileWriter escritor;
 
 
-                    if(locationListener.isInHome){//Considera-se que na home há condições de enviar ao servidor.
+                    if(locationListener.isInHome && conexao.isConnectedWifi()){//Considera-se que na home comm conexão wifi há condições de enviar ao servidor.
                     //Se houver condição de enviar os dados ao servidor, envie todos os dados disponíveis.
                         Log.v("HOMEinfo", "ESTÁ NA HOME");
 
@@ -114,12 +116,12 @@ public class MyServiceSemThread extends Service {
                             Log.v("SERVIDOR", "DADOS SALVOS ENVIANDO");
 
                             while((aux2 = leituraDados.readLine()) != null){//Leia tudo que está no arquivo.
-                                aux = "\n" + aux2;
+                                aux += "\n" + aux2;
                                 aux2 = null;
-                            }
+                            }aux +=  "\n";
 
-                            myClient = new Client(ip, porta, aux + info.getInfo());//Envie para o servidor os dados que estavam salvos.
-                            myClient.execute();
+                            myClient = new Client(ip, porta, aux+ "\n" + "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n");//Envie para o servidor os dados que estavam salvos.
+                            myClient.execute();//A quebra de linha após o aux é para alinhar os dados do arquivo com os do servidor da forma que são recebidos.
 
                             escritor = new FileWriter(arquivoDados, false);//apaga o buffer de dados e o fecha.
                             escritor.write("");
@@ -129,7 +131,7 @@ public class MyServiceSemThread extends Service {
 
                             Log.v("SERVIDOR", "DADOS ENVIANDO");
 
-                            myClient = new Client(ip, porta, info.getInfo());//Envia somente os dados atuais.
+                            myClient = new Client(ip, porta, "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n");//Envia somente os dados atuais.
                             myClient.execute();
 
                         }
@@ -155,7 +157,7 @@ public class MyServiceSemThread extends Service {
                     registrouAlertas = true;
                 }
 
-                if(++contador<100) handler.postDelayed(this, 1000);
+                if(++contador<10) handler.postDelayed(this, 1000);
                 else onDestroy();
             }
         };
@@ -168,15 +170,9 @@ public class MyServiceSemThread extends Service {
     @Override
     public void onDestroy() {
 
-        try {
-            if (!servicoDestruido) {//Só execute se ainda nao foi destruído. Senão às vezes ocorrem bugs.
-                locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
-                info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
-                servicoDestruido = true;//Serviço já foi destruído automaticamente, isto informa para que nao tentemos destruí-lo de novo, causando bugs.
-            }
-        } catch (IllegalArgumentException e) {
-        e.printStackTrace();
-        }
+        locationListener.removeListener();//Deixa de requisitar atualizações ao sistema e remove este listener. Economiza energia.
+        info.onDestroy();//Deixa de requisitar atualizações ao sistema e remove os listener. Economiza energia e evita relatório de erros.
+        servicoDestruido = true;//Serviço já foi destruído automaticamente, isto informa para que nao tentemos destruí-lo de novo, causando bugs.
 
         Toast.makeText(this, "Service Destroyed", LENGTH_LONG).show();
         handler.removeCallbacks(runnableCode);//Retira todas as chamadas agendadas deste serviço.

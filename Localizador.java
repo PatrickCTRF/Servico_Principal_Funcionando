@@ -28,6 +28,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
     private LocationManager locationManager;//Este é o manager que usaremos para solicitar acesso à localizaçãoes.
     private double latitude;
     private double longitude;
+    private double incerteza;
     private boolean aguardando_coordenadas;
     boolean isInHome;
     PendingIntent intentPendente;
@@ -40,6 +41,10 @@ public class Localizador extends ContextWrapper implements LocationListener {
         return longitude;
     }
 
+    public double getIncerteza() {
+        return incerteza;
+    }
+
     public boolean coordenadas_atualizadas() {//Retorna true se as coordenaadas estao atualizadas e false se nao.
         return !aguardando_coordenadas;
     }
@@ -48,6 +53,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
     public void onLocationChanged(Location location) {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
+        incerteza = location.getAccuracy();
         aguardando_coordenadas = false;//Nao esta mais esperando pra receber  as coodenadas.
 
         myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude() + " Incerteza = " + location.getAccuracy();
@@ -157,11 +163,15 @@ public class Localizador extends ContextWrapper implements LocationListener {
             return;
         }
 
-        Log.v("LISTENER", "listener REMOVENDO");
-        if(intentPendente != null) locationManager.removeProximityAlert(intentPendente);//Remove o alerta de proximidade caso tenha sido registrado.
-        locationManager.removeUpdates(this);//Desregistra o Listener.
-        unregisterReceiver(proximity_receiver);
-        Log.v("LISTENER", "listener REMOVIDO");
+        try{//Este try/catch evita erros causados por chamadas repetidas de unregisterReceiver
+            Log.v("LISTENER", "listener REMOVENDO");
+            if(intentPendente != null) locationManager.removeProximityAlert(intentPendente);//Remove o alerta de proximidade caso tenha sido registrado.
+            locationManager.removeUpdates(this);//Desregistra o Listener.
+            unregisterReceiver(proximity_receiver);
+            Log.v("LISTENER", "listener REMOVIDO");
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
 
     }
 
