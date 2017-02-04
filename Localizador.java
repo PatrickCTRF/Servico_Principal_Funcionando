@@ -54,12 +54,13 @@ public class Localizador extends ContextWrapper implements LocationListener {
         latitude = location.getLatitude();
         longitude = location.getLongitude();
         incerteza = location.getAccuracy();
-        aguardando_coordenadas = false;//Nao esta mais esperando pra receber  as coodenadas.
 
         myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude() + " Incerteza = " + location.getAccuracy();
 
         //Ver os dados através do LOG.
         Log.e("LOCALIZAÇÃO ATUAL", myLocation);
+
+        aguardando_coordenadas = false;//Nao esta mais esperando pra receber  as coodenadas.
 
     }
 
@@ -180,6 +181,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
         myLocation = "O valor da localização não está sendo alterado";
         aguardando_coordenadas = true;
         intentPendente = null;
+        incerteza = 99999999;//Inicialmente a incerteza é absoluta.
 
 
     }

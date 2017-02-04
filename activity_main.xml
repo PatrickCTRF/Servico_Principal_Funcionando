@@ -11,11 +11,6 @@
     tools:context="com.example.patrick.servico_principal.MainActivity"
     android:orientation="vertical">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="MOPA" />
-
     <EditText
         android:id="@+id/addressEditText"
         android:layout_width="match_parent"
