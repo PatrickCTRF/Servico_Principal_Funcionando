@@ -1,19 +1,11 @@
 package com.example.patrick.servico_principal;
 
-import android.Manifest;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.LocationManager;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -86,6 +78,7 @@ public class MyServiceSemThread extends Service {
 
                 Log.v("SERVICO PRINCPAL BOOT", "O serviço principal foi chamado." + contador);
 
+                locationListener.getMyLocation();//Solicita as atualizações de local
 
                 Calendar calendario = Calendar.getInstance();
 
@@ -99,12 +92,17 @@ public class MyServiceSemThread extends Service {
 
                     home_latitude = parseDouble(bufferLeitura.readLine());
                     home_longitude = parseDouble(bufferLeitura.readLine());
-                    //home_latitude = home_longitude = 0;
                     bufferLeitura.close();
+
+                    if(!registrouAlertas){
+                        Log.v("ALERTA DE PROXIMIDADE", "TENTANDO CHAMAR ALERTAS...");
+                        locationListener.registraAlertaDeProximidade(home_latitude, home_longitude, (float) 10);//Registramos e solicitamos o alerta de proximidade.
+                        registrouAlertas = true;
+                    }
 
                     FileWriter escritor;
 
-
+                    if(locationListener.getIncerteza()<17)//Só realiza os procedimentos do serviço se obtivermos um valor de incerteza "confiável".
                     if(locationListener.isInHome && conexao.isConnectedWifi()){//Considera-se que na home comm conexão wifi há condições de enviar ao servidor.
                     //Se houver condição de enviar os dados ao servidor, envie todos os dados disponíveis.
                         Log.v("HOMEinfo", "ESTÁ NA HOME");
@@ -123,12 +121,12 @@ public class MyServiceSemThread extends Service {
 
                             aux += "\n" + "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
 
-                            myClient = new Client(ip, porta, aux);//Envie para o servidor os dados que estavam salvos.
-                            myClient.execute();//A quebra de linha após o aux é para alinhar os dados do arquivo com os do servidor da forma que são recebidos.
-
                             escritor = new FileWriter(arquivoDados, false);//apaga o buffer de dados e o fecha.
                             escritor.write("");
                             escritor.close();
+
+                            myClient = new Client(ip, porta, aux);//Envie para o servidor os dados que estavam salvos.
+                            myClient.execute();//A quebra de linha após o aux é para alinhar os dados do arquivo com os do servidor da forma que são recebidos.
 
                         }else{//Se o arquivo estiver vazio...
 
@@ -165,12 +163,6 @@ public class MyServiceSemThread extends Service {
 
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-
-                if(!registrouAlertas){
-                    Log.v("ALERTA DE PROXIMIDADE", "TENTANDO CHAMAR ALERTAS...");
-                    locationListener.registraAlertaDeProximidade(home_latitude, home_longitude, (float) 8);//Registramos e solicitamos o alerta de proximidade.
-                    registrouAlertas = true;
                 }
 
                 if(++contador<40){

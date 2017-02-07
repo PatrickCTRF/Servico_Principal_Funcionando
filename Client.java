@@ -71,6 +71,14 @@ public class Client extends AsyncTask<Void, Void, Void> {
             response = "UnknownHostException: " + e.toString();
         } catch (IOException e) {
             // TODO Auto-generated catch block
+            File arquivoDados = new File(Environment.getExternalStorageDirectory().toString() + "/" + "_InformacoesDaVidaDoUsuario.txt");
+            try {
+                FileWriter escritor = new FileWriter(arquivoDados, true);//apaga o buffer de dados e o fecha.
+                escritor.write(info + "\n");
+                escritor.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             e.printStackTrace();
             response = "IOException: " + e.toString();
         }  finally {
