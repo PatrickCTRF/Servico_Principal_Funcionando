@@ -1,6 +1,7 @@
 package com.example.patrick.servico_principal;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
 import android.os.Handler;
@@ -11,6 +12,8 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Calendar;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -26,7 +29,7 @@ public class ServicoParaGPS extends Service {
     //Obtém sua localizção atual
     final Localizador coordenadas = new Localizador(this);
     boolean servicoDestruido = false;
-
+    Context contextt = this;
     Runnable runnableCode;
 
 
@@ -62,7 +65,6 @@ public class ServicoParaGPS extends Service {
 
 
 
-
                 if(!coordenadas.coordenadas_atualizadas()){
                     handler.postDelayed(this, 1000);
                     Log.v("2222222222", "2222222222222");
@@ -79,11 +81,30 @@ public class ServicoParaGPS extends Service {
                         e.printStackTrace();
                     }
 
+                    /*File file = new File(Environment.getExternalStorageDirectory().toString() + "/" + "musicas" + ".zip");
+
+                    try {
+                        if(file.createNewFile() || true) {
+                            Log.v("CAMINHO", Environment.getExternalStorageDirectory().toString());
+                            DownloadFilesTask baixaMusica = new DownloadFilesTask();
+                            Log.v("URLL", "Tentando baixar");
+
+                            try {
+                                baixaMusica.setContext(contextt, file);
+                                baixaMusica.execute(new URL("https://archive.org/compress/return_holmes_0708_librivox/formats=64KBPS%20MP3&file=/return_holmes_0708_librivox.zip"));//http://www.textureking.com/content/img/stock/big/DSC_6849.JPG//https://archive.org/compress/return_holmes_0708_librivox/formats=64KBPS%20MP3&file=/return_holmes_0708_librivox.zip
+                            } catch (MalformedURLException e) {
+                                e.printStackTrace();
+                                Log.v("URLL", "Deu erro");
+                            }
+
+                            Log.v("URLL", "Esta Baixando");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }*/
+
                     onDestroy();
                 }
-
-
-
 
             }
         };

@@ -31,6 +31,7 @@ public class AquisicaoSensores extends ContextWrapper{
     private LocationManager locationManager;
     private int qtde = 0;
     private List<Sensor> lista;
+    private int level;
 
     /* Criei classes anônimas separadas para o acelerometro e o giroscopio para poder usar dois registerListener() diferentes*/
 
@@ -72,6 +73,7 @@ public class AquisicaoSensores extends ContextWrapper{
 
     public AquisicaoSensores(Context base) {
         super(base);
+        level = 92;
     }
 
 
@@ -109,6 +111,10 @@ public class AquisicaoSensores extends ContextWrapper{
 
     }
 
+    public int getLevel() {
+        return level;
+    }
+
     private BroadcastReceiver battery_receiver = new BroadcastReceiver() {
 
         @Override
@@ -122,7 +128,7 @@ public class AquisicaoSensores extends ContextWrapper{
             int rawlevel = intent.getIntExtra("level", -1);
             int voltage = intent.getIntExtra("voltage", 0);
             int temperature = intent.getIntExtra("temperature", 0);
-            int level = 0;
+            level = level;
 
             Bundle bundle = intent.getExtras();
 

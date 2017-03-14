@@ -55,7 +55,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
         longitude = location.getLongitude();
         incerteza = location.getAccuracy();
 
-        myLocation = "Latitude = " + location.getLatitude() + " Longitude = " + location.getLongitude() + " Incerteza = " + location.getAccuracy();
+        myLocation = "Latitude = " + location.getLatitude() + "\nLongitude = " + location.getLongitude() + "\nIncerteza = " + location.getAccuracy();
 
         //Ver os dados através do LOG.
         Log.e("LOCALIZAÇÃO ATUAL", myLocation);
@@ -70,7 +70,6 @@ public class Localizador extends ContextWrapper implements LocationListener {
     }
 
     public String getMyLocation() {//Parece que se chamarmos este método no construtor ocorre erro devido ao contexto dado. Não tenho certeza, mas parece se devido a isto.
-
 
         if (!registrou_manager) {
             locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -134,7 +133,7 @@ public class Localizador extends ContextWrapper implements LocationListener {
         registerReceiver(proximity_receiver, filter);//Registra no sistema o listener que eu criei.
     }
 
-    public boolean isInHome() {//Quando o alerta for dado, esta variavel permite identificar se estamos entrando ou saindo do perímetroa sob alerta.
+    public boolean isInHome(){//Quando o alerta for dado, esta variavel permite identificar se estamos entrando ou saindo do perímetroa sob alerta.
         return isInHome;
     }
 

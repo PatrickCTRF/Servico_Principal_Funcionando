@@ -69,6 +69,32 @@
         android:layout_gravity="center"
         android:layout_width="wrap_content" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Modo de Economia"
+        android:id="@+id/button3"
+        android:onClick="startEconomy"
+        android:layout_below="@+id/buttonhome"
+        android:layout_alignLeft="@+id/buttonhome"
+        android:layout_alignStart="@+id/buttonhome"
+        android:layout_alignRight="@+id/buttonhome"
+        android:layout_alignEnd="@+id/buttonhome"
+        android:layout_gravity="center" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Modo de Desempenho"
+        android:id="@+id/button4"
+        android:onClick="startPerformance"
+        android:layout_below="@+id/button3"
+        android:layout_alignLeft="@+id/button3"
+        android:layout_alignStart="@+id/button3"
+        android:layout_alignRight="@+id/button3"
+        android:layout_alignEnd="@+id/button3"
+        android:layout_gravity="center" />
+
     <TextView
         android:id="@+id/responseTextView"
         android:layout_width="match_parent"

@@ -1,6 +1,7 @@
 package com.example.patrick.servico_principal;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Environment;
 import android.os.Handler;
@@ -13,6 +14,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Calendar;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -48,6 +51,8 @@ public class MyServiceSemThread extends Service {
     boolean registrouAlertas = false;
     Conectividade conexao = new Conectividade(this);
     Intent intente = null;
+    Context contextt = this;
+    String modo_Desempenho = null;
 
 
 
@@ -68,6 +73,8 @@ public class MyServiceSemThread extends Service {
 
         Toast.makeText(this, "Service Started", LENGTH_LONG).show();
 
+        info.getInfo();
+
         runnableCode = new Runnable() {
 
             private int contador = 0;
@@ -76,7 +83,7 @@ public class MyServiceSemThread extends Service {
             @Override
             public void run() {
 
-                Log.v("SERVICO PRINCPAL BOOT", "O serviço principal foi chamado." + contador);
+                Log.v("SERVICO PRINCPAL BOOT", "O serviço principal foi chamado." + contador + "  " + contadorDeLongoPrazo);
 
                 locationListener.getMyLocation();//Solicita as atualizações de local
 
@@ -86,12 +93,19 @@ public class MyServiceSemThread extends Service {
 
                 File arquivoHome = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Latitude_Longitude_Home.txt");
 
+                File arquivoModo = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Modo_Atual.txt");
+
                 try {
 
                     BufferedReader bufferLeitura = new BufferedReader(new FileReader(arquivoHome));
 
                     home_latitude = parseDouble(bufferLeitura.readLine());
                     home_longitude = parseDouble(bufferLeitura.readLine());
+                    bufferLeitura.close();
+
+                    bufferLeitura = new BufferedReader(new FileReader(arquivoModo));
+
+                    modo_Desempenho = bufferLeitura.readLine();
                     bufferLeitura.close();
 
                     if(!registrouAlertas){
@@ -109,6 +123,7 @@ public class MyServiceSemThread extends Service {
 
                         BufferedReader leituraDados = new BufferedReader(new FileReader(arquivoDados));
 
+                        arquivoDados.createNewFile();//Se e somente SE NÃO existir o arquivo especificado, iremos criá-lo para evitar erros de arquivos não encontrados.
                         Client myClient;
                         if ((aux = leituraDados.readLine()) != null) {//Se o arquivo nao estiver vazio...
 
@@ -119,7 +134,7 @@ public class MyServiceSemThread extends Service {
                                 aux2 = null;
                             }aux +=  "\n";
 
-                            aux += "\n" + "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
+                            aux += "\n" + "\n\nTempo atual: " + System.currentTimeMillis() + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
 
                             escritor = new FileWriter(arquivoDados, false);//apaga o buffer de dados e o fecha.
                             escritor.write("");
@@ -132,7 +147,7 @@ public class MyServiceSemThread extends Service {
 
                             Log.v("SERVIDOR", "DADOS ENVIANDO");
 
-                            aux = "\n" + "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
+                            aux = "\n" + "\n\nTempo atual: " + System.currentTimeMillis() + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";//calendario.get(Calendar.HOUR_OF_DAY) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND)
                             myClient = new Client(ip, porta, aux);//Envia somente os dados atuais.
                             myClient.execute();
 
@@ -148,7 +163,7 @@ public class MyServiceSemThread extends Service {
 
                         Log.v("HOMEinfo", "NÃO ESTÁ NA HOME");
 
-                        aux = "\n\nTempo atual: " + calendario.get(Calendar.HOUR) + ":" + calendario.get(Calendar.MINUTE) + ":" + calendario.get(Calendar.SECOND) + "," + calendario.get(Calendar.MILLISECOND) + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
+                        aux = "\n\nTempo atual: " + System.currentTimeMillis() + "\n" + info.getInfo() + "\n\n" + locationListener.getMyLocation() + "\n----------------\n";
 
                         escritor = new FileWriter(arquivoDados, true);
                         escritor.write(aux);
@@ -165,12 +180,40 @@ public class MyServiceSemThread extends Service {
                     e.printStackTrace();
                 }
 
-                if(++contador<40){
+                if(++contador<40) {
+
                     handler.postDelayed(this, 1000);//O serviço se repete múltiplas vezes seguidas para garantir que estamos recebendo uma leitura correta dos sensores.
+
                 } else if(++contadorDeLongoPrazo<2){//Após sucessivas repetições, aguardamos um longo período de tempo para realizar uma nova amostragem.
+
+                    if((modo_Desempenho.equals("economia") && info.getLevel()>15) || modo_Desempenho.equals("desempenho")){//Se o modo de desempenho estiver  ligado baixe. Se for modo de economia com bateria suficiente, baixe tb.
+                        File file = new File(Environment.getExternalStorageDirectory().toString() + "/" + "musicas" + ".zip");
+
+                        try {
+                            if (file.createNewFile() || true) {
+                                Log.v("CAMINHO", Environment.getExternalStorageDirectory().toString());
+                                DownloadFilesTask baixaMusica = new DownloadFilesTask();
+                                Log.v("URLL", "Tentando baixar");
+
+                                try {
+                                    baixaMusica.setContext(contextt, file);
+                                    if(modo_Desempenho.equals("economia")){baixaMusica.execute(new URL("https://archive.org/compress/return_holmes_0708_librivox/formats=64KBPS%20MP3&file=/return_holmes_0708_librivox.zip"));}//http://www.textureking.com/content/img/stock/big/DSC_6849.JPG//https://archive.org/compress/return_holmes_0708_librivox/formats=64KBPS%20MP3&file=/return_holmes_0708_librivox.zip
+                                    else{baixaMusica.execute(new URL("https://archive.org/compress/return_holmes_0708_librivox/formats=128KBPS%20MP3&file=/return_holmes_0708_librivox.zip"));}//Baixa em alta qualidade.
+                                } catch (MalformedURLException e) {
+                                    e.printStackTrace();
+                                    Log.v("URLL", "Deu erro");
+                                }
+
+                                Log.v("URLL", "Esta Baixando");
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     desligaSensores();
                     contador = 0;//Reiniciamos o contador de amostragem.
-                    handler.postDelayed(this, 60000);
+                    handler.postDelayed(this, 600000);//10 minutos.
                 }else{
                     onDestroy();
                 }

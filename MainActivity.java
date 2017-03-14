@@ -1,9 +1,12 @@
 package com.example.patrick.servico_principal;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -61,5 +64,37 @@ public class MainActivity extends AppCompatActivity {
         sendBroadcast(intnet);
 
         startService(new Intent(getBaseContext(), ServicoParaGPS.class));//Como aki eu invoco um metodo q nao foi implementado??? Ele pertence a Context.
+    }
+
+    public void startPerformance(View view){
+        File arquivo = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Modo_Atual.txt");
+
+        try {
+            FileWriter escritor = new FileWriter(arquivo, false);
+
+            escritor.write("desempenho\n");
+            escritor.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Toast.makeText(this, "Desempenho Máximo", LENGTH_LONG).show();
+    }
+
+    public void startEconomy(View view){
+        File arquivo = new File(Environment.getExternalStorageDirectory().toString() + "/" + "Modo_Atual.txt");
+
+        try {
+            FileWriter escritor = new FileWriter(arquivo, false);
+
+            escritor.write("economia\n");
+            escritor.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Toast.makeText(this, "Economizando", LENGTH_LONG).show();
     }
 }
